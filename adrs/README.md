@@ -23,6 +23,7 @@ Filenames are flat numeric — `ADR-NNNN-kebab-case-title.md`. Topical organizat
 |---|---|---|
 | [0001](ADR-0001-use-madr-format.md) | Use MADR format for ADRs | Accepted |
 | [0002](ADR-0002-repo-canonical-for-engineering-docs.md) | Repo is canonical for engineering docs | Accepted |
+| [0003](ADR-0003-project-repos-vendor-handbook-essentials.md) | Project repos vendor handbook essentials in CLAUDE.md and ship /bh-process | Accepted |
 
 ### Architecture
 
