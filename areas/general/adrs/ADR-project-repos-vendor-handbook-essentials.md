@@ -1,4 +1,11 @@
-# ADR-0003: Project repos vendor handbook essentials in CLAUDE.md and ship `/bh-process`
+---
+adr: ADR-project-repos-vendor-handbook-essentials
+title: "Project repos vendor handbook essentials in CLAUDE.md and ship `/bh-process`"
+owners: [engineering]
+status: accepted
+---
+
+# Project repos vendor handbook essentials in CLAUDE.md and ship `/bh-process`
 
 - **Status:** Accepted
 - **Deciders:** Engineering
@@ -74,6 +81,6 @@ The whole handbook copied into every project's `CLAUDE.md`. Or a strict subset t
 
 ## Links
 
-- [`process/engineering-handbook.md`](../process/engineering-handbook.md) — the canonical handbook this ADR governs delivery of
-- [ADR-0002: Repo is canonical for engineering docs](ADR-0002-repo-canonical-for-engineering-docs.md) — the prior decision that established argus as canonical
+- [`process/engineering-handbook.md`](../../../process/engineering-handbook.md) — the canonical handbook this ADR governs delivery of
+- [Repo is canonical for engineering docs](ADR-repo-canonical-for-engineering-docs.md) — the prior decision that established argus as canonical
 - Reference implementation: BillFlow `.claude/skills/bh-process/SKILL.md` and the "Engineering process" section of BillFlow's root `CLAUDE.md` (both shipping in `vercel-billflow` via `feature/process` stacked on `feature/folder-structure`)

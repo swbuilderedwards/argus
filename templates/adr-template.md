@@ -1,8 +1,17 @@
-# ADR-NNNN: {short title of solved problem and solution}
+---
+adr: ADR-[slug]                  # canonical ID, must match filename
+title: {Short title}
+owners: [team-slug]              # owning team(s)
+status: proposed                 # proposed | accepted | superseded
+supersedes: []                   # list of ADR slugs, optional
+superseded_by:                   # slug of replacement ADR, only if status=superseded
+---
 
-- **Status:** {Proposed | Accepted | Deprecated | Superseded by [ADR-NNNN](ADR-NNNN-title.md)}
-- **Deciders:** {names}
-- **Date:** {YYYY-MM-DD when last updated}
+# {Short title}
+
+- **Status:** {Proposed | Accepted | Superseded by [ADR-replacement](ADR-replacement.md)}
+- **Deciders:** {names or team}
+- **Date:** {YYYY-MM-DD}
 - **Tags:** {comma-separated, optional}
 
 ## Context and Problem Statement

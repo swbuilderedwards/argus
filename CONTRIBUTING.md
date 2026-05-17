@@ -1,6 +1,6 @@
 # Contributing to argus
 
-argus is the canonical home for org-wide engineering decisions, standards, and process. The repo is the source of truth; Confluence is a downstream read-only mirror (once the sync is built).
+argus is the canonical home for engineering decisions, standards, process docs, and TDDs across Big Health. The repo is the source of truth; Confluence is a downstream read-only mirror (once the sync is built).
 
 ## Documentation PR workflow
 
@@ -17,19 +17,16 @@ argus is the canonical home for org-wide engineering decisions, standards, and p
 - Superseded or amended docs go through the same PR review gate.
 - Comments on Confluence pages are out of bounds. Direction: raise a PR.
 
-## ADRs
+## TDDs and ADRs
 
-- ADRs in argus are org-wide. If you're documenting a decision that only constrains one project, author it in that project's `doc/adrs/` instead.
-- Use the [MADR template](adrs/template.md).
-- ADR filenames are flat numeric: `ADR-NNNN-title.md`. Topical organization belongs in `adrs/README.md`, not subdirectories.
-
-## Promoting a project ADR to argus
-
-See the engineering handbook, *ADR promotion ceremony*. The short version: cross-team review is required, and the originating project's ADR is updated to "Superseded by argus ADR-NNNN."
+- File under `areas/<area>/{tdds,adrs}/`. See [`areas/README.md`](areas/README.md) for the taxonomy and the rule for adding or renaming an area.
+- Use the [TDD template](templates/tdd-template.md) or [ADR template](templates/adr-template.md). Both are MADR-aligned with a YAML frontmatter contract on top.
+- Filenames are slug-based: `TDD-[slug].md`, `ADR-[slug].md`. No numeric prefix.
+- Cross-cutting decisions not tied to a single product/area go under `areas/general/`. Use `related_areas:` in frontmatter to flag connections to specific areas.
 
 ## Standards
 
-Argus standards are assumed to apply to all projects unless a project ADR explicitly deviates. Deviations must link to the argus standard they deviate from.
+Argus standards are assumed to apply to all projects unless an ADR explicitly deviates. Deviations must link to the argus standard they deviate from.
 
 ## Architecture overviews
 
