@@ -61,7 +61,7 @@ Each project repo carries:
 The whole handbook copied into every project's `CLAUDE.md`. Or a strict subset that covers everything the agent might need.
 
 - Good, because everything is always in context — no agent decision required.
-- Bad, because either you copy the whole handbook (21KB context tax per session, multiplied across every project repo) or you copy a subset and lose access to ADR promotion ceremony, documentation PR workflow, rationale, etc.
+- Bad, because either you copy the whole handbook (21KB context tax per session, multiplied across every project repo) or you copy a subset and lose access to the documentation PR workflow, rationale, etc.
 - Bad, because copying the whole handbook into N project repos guarantees drift from argus the moment the canonical version changes.
 
 ### B) `/bh-process` skill only
