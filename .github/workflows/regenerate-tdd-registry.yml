@@ -24,6 +24,11 @@ concurrency:
 jobs:
   regenerate:
     runs-on: ubuntu-latest
+    # Guard: until argus moves to the Big-Health org and the argus-registry-sync
+    # GitHub App is created and installed, this job is a no-op. Setting the
+    # ARGUS_REGISTRY_APP_ID repository variable activates it. Remove this `if:`
+    # once the App is wired up.
+    if: ${{ vars.ARGUS_REGISTRY_APP_ID != '' }}
     steps:
       - name: Mint GitHub App token
         id: app-token
