@@ -1,4 +1,11 @@
-# ADR-0001: Use MADR format for ADRs
+---
+adr: ADR-use-madr-format
+title: Use MADR format for ADRs
+owners: [engineering]
+status: accepted
+---
+
+# Use MADR format for ADRs
 
 - **Status:** Accepted
 - **Deciders:** Engineering
@@ -58,5 +65,5 @@ Chosen option: **"MADR"**, because it is the most widely adopted modern ADR form
 ## Links
 
 - [MADR project](https://adr.github.io/madr/)
-- [`template.md`](template.md)
-- [ADR-0002: Repo is canonical for engineering docs](ADR-0002-repo-canonical-for-engineering-docs.md)
+- [`adr-template.md`](../../../templates/adr-template.md)
+- [Repo is canonical for engineering docs](ADR-repo-canonical-for-engineering-docs.md)

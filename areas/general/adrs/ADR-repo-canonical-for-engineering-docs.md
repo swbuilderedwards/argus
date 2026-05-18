@@ -1,4 +1,11 @@
-# ADR-0002: Repo is canonical for engineering docs
+---
+adr: ADR-repo-canonical-for-engineering-docs
+title: Repo is canonical for engineering docs
+owners: [engineering]
+status: accepted
+---
+
+# Repo is canonical for engineering docs
 
 - **Status:** Accepted
 - **Deciders:** Engineering
@@ -60,5 +67,5 @@ Chosen option: **"Repo-canonical with Confluence sync"**, because it preserves A
 
 ## Links
 
-- [Engineering handbook — Section 4: Rationale](../process/engineering-handbook.md#section-4-rationale)
-- [ADR-0001: Use MADR format for ADRs](ADR-0001-use-madr-format.md)
+- [Engineering handbook — Section 4: Rationale](../../../process/engineering-handbook.md#section-4-rationale)
+- [Use MADR format for ADRs](ADR-use-madr-format.md)

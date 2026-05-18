@@ -12,18 +12,16 @@
 
 | Artifact | Location |
 |---|---|
-| Org-wide ADR | `argus/adrs/ADR-NNNN-title.md` |
-| Org-wide standard or style guide | `argus/standards/` |
+| TDD | `argus/areas/<area>/tdds/TDD-[slug].md` |
+| ADR | `argus/areas/<area>/adrs/ADR-[slug].md` |
+| TDD / ADR template | `argus/templates/tdd-template.md`, `argus/templates/adr-template.md` |
+| Standard or style guide | `argus/standards/` |
 | Engineering process docs (this doc) | `argus/process/` |
 | Architectural overview | `argus/architecture/` |
-| Project TDD | `[project]/doc/tdds/TDD-NNNN-title.md` |
-| Project-scoped ADR | `[project]/doc/adrs/ADR-NNNN-title.md` |
 | Phasing plan | `[project]/doc/phasing/phasing-[feature].md` |
 | Per-ticket working context | `[project]/.claude/tickets/[ticket-id]/` (local only, gitignored) |
 
-**Scope rule:** Default to project-scoped. Promote to argus when a decision is relevant to engineers across teams. When unsure, project-scoped first.
-
-**Multi-repo TDDs:** Live in the primary repo (the one that would own the post-mortem if the feature breaks). If no clear primary exists, live in `argus/tdds/` (rare — if this fills up, it signals architectural coupling worth investigating).
+**Where to file:** Pick the most specific applicable area in `argus/areas/`. Cross-cutting decisions that aren't tied to a single product or area go under `areas/general/`. When unsure, default to `general/` until usage patterns clarify scope. See [`../areas/README.md`](../areas/README.md) for the seed taxonomy and the rule for adding or renaming an area.
 
 ---
 
@@ -112,9 +110,9 @@ PRD + design spec
 2. `/plan-eng-review` — Produces the TDD. Run against the full feature; comprehensiveness is appropriate here.
 3. `/plan-design-review` — UI features only.
 
-**TDD:** The output of `/plan-eng-review` becomes the TDD with light editing. Must be reviewed and merged via PR before Phase 2 begins.
+**TDD:** The output of `/plan-eng-review` becomes the TDD with light editing. File it under the most specific applicable area at `argus/areas/<area>/tdds/TDD-[slug].md`. TDD frontmatter must include `epic:` before its `status` moves from `draft` to `accepted`. Must be reviewed and merged via PR before Phase 2 begins.
 
-**ADRs:** After `/plan-eng-review`, review the TDD for decisions that warrant a standalone ADR. Author one ADR per decision using the MADR template. A decision warrants an ADR when it constrains future work, rejects a plausible alternative for non-obvious reasons, or would prompt a future engineer to ask "why did we do it this way?" Most Phase 1 ADRs are project-scoped. Author directly in argus only when the decision is clearly org-wide from the start.
+**ADRs:** After `/plan-eng-review`, review the TDD for decisions that warrant a standalone ADR. Author one ADR per decision using the MADR template at `templates/adr-template.md`. A decision warrants an ADR when it constrains future work, rejects a plausible alternative for non-obvious reasons, or would prompt a future engineer to ask "why did we do it this way?" File each ADR under the most specific applicable area at `argus/areas/<area>/adrs/ADR-[slug].md`. Cross-cutting decisions go under `areas/general/`.
 
 **Review and publish:** Both TDD and ADRs go through the documentation PR workflow (see *Documentation PR workflow* below) before Phase 2 starts.
 
@@ -127,7 +125,7 @@ PRD + design spec
 
 Do not start Phase 2 until the TDD is merged. Tickets created against an unstable TDD will be rewritten.
 
-Produce the phasing plan by loading the TDD into Claude Code and prompting for a sequencing breakdown — identifying dependencies, sequence constraints, and milestones. Save as `[project]/doc/phasing/phasing-[feature].md`. The phasing plan is not synced to Confluence.
+Produce the phasing plan by loading the TDD into Claude Code and prompting for a sequencing breakdown — identifying dependencies, sequence constraints, and milestones. Save as `[project]/doc/phasing/phasing-[feature].md`. The phasing plan is project-local and is not synced to Confluence.
 
 Run `/jira-ticket-authoring` to convert the locked TDD and phasing plan into Jira tickets.
 
@@ -139,7 +137,7 @@ Run `/jira-ticket-authoring` to convert the locked TDD and phasing plan into Jir
 **Outputs:** Code, ephemeral working context, promoted insights (if any)
 
 **Session setup — do these before anything else:**
-1. Load the TDD into context.
+1. Load the TDD into context. TDDs live in argus under `areas/<area>/tdds/`. When available, `/bh-ticket-start` resolves a ticket to its TDD by greping frontmatter `epic:` across `argus/areas/`; otherwise navigate by area.
 2. Load the Jira ticket.
 3. Run `/careful` and `/freeze` (or `/guard`).
 
@@ -148,12 +146,12 @@ Run `/jira-ticket-authoring` to convert the locked TDD and phasing plan into Jir
 **Implementation:** Agentic execution against the plan.
 
 - On breakage: `/investigate` before any fix. No exceptions.
-- On a new edge case: a new edge case is something the TDD didn't anticipate but doesn't invalidate its overall approach — for example, a data shape that differs from what was assumed, an integration constraint that wasn't known at planning time, or a failure mode the TDD's test plan didn't cover. Pause, run `/plan-eng-review` on the specific discovery (not the whole ticket), update the TDD via PR, then continue. If you find yourself questioning the architectural approach rather than filling in a gap, that's not a new edge case — see the bullet below.
+- On a new edge case: a new edge case is something the TDD didn't anticipate but doesn't invalidate its overall approach — for example, a data shape that differs from what was assumed, an integration constraint that wasn't known at planning time, or a failure mode the TDD's test plan didn't cover. Pause, run `/plan-eng-review` on the specific discovery (not the whole ticket), update the TDD via PR in argus, then continue. If you find yourself questioning the architectural approach rather than filling in a gap, that's not a new edge case — see the bullet below.
 - On a broken architectural approach: stop the ticket. Re-open Phase 1. See *Rationale — what to do when the TDD is wrong*.
 
 **Working context:** `.claude/tickets/[ticket-id]/` holds plan files, notes, failed approaches — anything needed for session continuity. This directory is gitignored always and never committed. Files persist on local disk for the ticket's lifetime. At ticket close, review for promotable insights, then delete.
 
-**Promotion at ticket close:** Run `/bh-ship` *(not yet built)*. It reviews working context, surfaces insights worth keeping, and routes confirmed candidates through the documentation PR workflow as TDD amendments or new ADRs in the project repo. This is project-scoped promotion. Promoting a project ADR to argus is a separate ceremony — see *ADR promotion ceremony*.
+**Promotion at ticket close:** Run `/bh-ship` *(not yet built)*. It reviews working context, surfaces insights worth keeping, and routes confirmed candidates through the documentation PR workflow as TDD amendments or new ADRs in argus.
 
 ---
 
@@ -174,7 +172,7 @@ PR is ready for QA when all applicable gates pass.
 
 ### Documentation PR workflow
 
-Applies to TDDs, ADRs, and amendments to either, in both project repos and argus.
+Applies to TDDs, ADRs, and amendments to either, in argus.
 
 1. Open a **Draft PR**. State in the description what kind of feedback is wanted: directional, line edits, or ready-to-approve.
 2. Ping reviewers manually in Slack or a PR comment. Draft PRs do not trigger review-request notifications.
@@ -201,31 +199,17 @@ Applies to TDDs, ADRs, and amendments to either, in both project repos and argus
 
 ---
 
-### ADR promotion ceremony
-
-When a project-scoped ADR becomes relevant across teams, promote it to argus.
-
-1. Open a Draft PR in argus adding the ADR with the next argus number. Describe: source ADR link, what triggered promotion, what changed in rewording for org-wide scope.
-2. Get cross-team review — at least one reviewer from outside the originating team.
-3. Promote to Ready, get required approvals. Do not merge yet.
-4. Open a companion PR in the project repo updating the original ADR's status to "Superseded by argus ADR-NNNN" with a link. Reference the argus PR.
-5. Merge argus PR first, project PR immediately after.
-6. The argus ADR's status block notes: "Originally authored as [project] ADR-NNNN, promoted YYYY-MM-DD."
-
----
-
 ## Section 3: Document structure
 
-### argus — org-wide, curated, gatekept
+### argus — canonical home for engineering docs
 
 ```
 argus/
 ├── README.md
 ├── CONTRIBUTING.md
-├── adrs/
-│   ├── README.md          ← topical index
-│   ├── ADR-0001-...md
-│   └── template.md
+├── templates/
+│   ├── tdd-template.md
+│   └── adr-template.md
 ├── standards/
 │   ├── README.md
 │   ├── coding/
@@ -236,14 +220,28 @@ argus/
 ├── process/
 │   ├── README.md
 │   └── engineering-handbook.md
-└── architecture/
-    ├── README.md          ← owner + last-reviewed date per entry
-    └── ...
+├── architecture/
+│   ├── README.md          ← owner + last-reviewed date per entry
+│   └── ...
+└── areas/
+    ├── README.md          ← taxonomy + add/rename norm
+    ├── entropy/
+    │   ├── tdds/
+    │   └── adrs/
+    ├── billflow/
+    │   ├── tdds/
+    │   └── adrs/
+    ├── general/           ← cross-cutting, not tied to one area
+    │   ├── tdds/
+    │   └── adrs/
+    └── ...                ← other areas
 ```
 
-ADR filenames are flat numeric (`ADR-0001-title.md`). Topical organization is in `adrs/README.md`, not in subdirectories. Architecture overviews require a named owner and last-reviewed date — unowned overviews are removed.
+TDD and ADR filenames are slug-based: `TDD-[slug].md`, `ADR-[slug].md`. No numeric prefix. The slug in the filename is the canonical ID and also appears as the `tdd:` or `adr:` field in YAML frontmatter. Refer to docs by slug ("ADR-idempotency-keys", "TDD-claims-validator") — the slug is descriptive enough that no qualifier is needed.
 
-### Project repos — project-scoped docs
+Architecture overviews require a named owner and last-reviewed date — unowned overviews are removed.
+
+### Project repos — local working artifacts only
 
 ```
 [project]/
@@ -252,30 +250,23 @@ ADR filenames are flat numeric (`ADR-0001-title.md`). Topical organization is in
 │       └── [ticket-id]/   ← gitignored, local only
 │           ├── plan.md
 │           └── notes.md
-└── doc/
-    ├── README.md          ← what's here, pointer to argus
-    ├── tdds/
-    │   ├── README.md      ← index with status per TDD
-    │   ├── TDD-0001-...md
-    │   └── template.md
-    ├── adrs/
-    │   ├── README.md
-    │   ├── ADR-0001-...md
-    │   └── template.md
+└── doc/                   ← optional
     └── phasing/
         ├── README.md
         └── phasing-[feature].md
 ```
 
-TDD and ADR numbering is independent per repo. Always qualify references in conversation: "argus ADR-7" or "BillFlow ADR-7," never bare "ADR-7."
+TDDs and ADRs do not live in project repos. Phasing plans may live project-local because they are working artifacts tied to a specific implementation effort, not cross-team reference material. Per-ticket working context is always gitignored.
 
 ### Cross-references between repos
 
-Reference argus ADRs from project TDDs using full GitHub URLs (not relative paths):
+Code in a project repo references TDDs and ADRs in argus by full GitHub URL (not relative paths, since the repos are separate):
 
-> This TDD operates under [ADR-0042: Idempotency Keys](https://github.com/Big-Health/argus/blob/main/adrs/ADR-0042-idempotency-keys.md).
+> This module implements the design described in [TDD-claims-validator](https://github.com/Big-Health/argus/blob/main/areas/billflow/tdds/TDD-claims-validator.md).
 
-Argus standards are assumed to apply to all projects unless a project ADR explicitly deviates. Deviations must link to the argus standard they deviate from.
+Within argus, use relative paths between docs.
+
+Argus standards are assumed to apply to all projects unless an ADR explicitly deviates. Deviations must link to the argus standard they deviate from.
 
 ---
 
@@ -289,19 +280,21 @@ Two reasons that outweigh the friction:
 
 The first is AI-assisted authoring. Claude Code works in the filesystem. Confluence via MCP is possible but slow — every edit is a round-trip API call with parsing overhead. For the kind of iterative, agent-assisted authoring that the gstack workflow produces, that latency is genuinely painful and will cause people to abandon the pattern.
 
-The second is the PR review workflow. Reviewing a TDD alongside the code it describes, in the same PR, using GitHub's native suggest-a-change feature, is strictly better than Confluence comments. Comments are threaded to specific lines, changes are one-click commits, formal approval is a merge gate with a timestamp and an author. Confluence's review UX is weaker on all three counts.
+The second is the PR review workflow. PR review — threaded line comments, one-click suggest-a-change, formal approval as a merge gate with timestamp and author — is strictly better than Confluence's page-level comment model. Confluence's review UX is weaker on all three counts.
 
 The Confluence sync gives you the best of both: engineers author in the repo, the rest of the team reads in Confluence, and the sync makes it invisible. The risk is that someone edits the Confluence page. The mitigation is cultural: "raise a PR" is the enforced norm.
 
-### Why argus is separate from project repos
+### Why area-first folders, not repo-canonical
 
-The alternative — putting all documentation, org-wide and project-specific, in one place — breaks the PR review workflow. A TDD reviewed by BillFlow engineers should live where BillFlow engineers naturally do their code review: the BillFlow repo. An ADR reviewed by engineers across teams should live in a neutral location with appropriate cross-team review. Physical location makes scope explicit and enforces the right review audience.
+An earlier version of this design had TDDs and ADRs live in their primary project repo, with an auto-generated registry in argus aggregating them for cross-team discovery. We pivoted to area-first folders in argus for three reasons.
 
-The strong objection to this is "two surfaces to know about." The answer is that the two surfaces have genuinely different jobs: argus is "how does the org do X?" and the project repo is "how does this system work?" Engineers naturally know which they need. Unified search through Confluence makes it a non-issue in practice.
+First, some products and integrations don't have a clear primary repo. Xealth integration is mostly n8n workflows that don't live in a repo at all. Redox integration and Web Order Form span multiple repos. Repo-canonical filing made the natural question "where does this TDD go?" answerable only with awkward conventions.
 
-### Why project-scoped ADRs default to the project repo
+Second, engineers navigate by product or architectural area, not by doc type or by repo. "I work on BillFlow" is a more common mental frame than "I'm looking for a TDD." Putting TDDs and the ADRs they spawn as siblings inside `areas/<area>/` matches how the work is actually scoped and read.
 
-When a decision feels potentially org-wide, the temptation is to author it in argus immediately. The problem is that scope is often hard to judge at authoring time. A decision that seems broadly applicable may have implicit project-specific assumptions that only become visible when another team tries to apply it. Defaulting to project-scoped and promoting later puts the burden of proof on the promotion — it happens when the broader relevance is demonstrated, not assumed.
+Third, a registry adds a hop. Discovery becomes "consult the registry, find the row, follow the link to a repo." Filesystem structure gives the same result with no indirection: `ls argus/areas/billflow/tdds/`.
+
+The arguments for keeping engineering docs in a repo (AI-assisted authoring speed, PR review discipline) still hold — argus is itself a repo. What we lose is "TDD reviewed in the same PR as the code it describes." In practice this matters less than it sounds: Phase 1 already requires the TDD to be merged before implementation starts, so the TDD and code rarely change together anyway. Mid-implementation TDD amendments become small argus PRs, which is the same shape we'd already use for any cross-cutting change.
 
 ### Why `/plan-eng-review` at the feature level, plan mode at the ticket level
 
@@ -329,12 +322,6 @@ The committed-and-squashed alternative depends on a manual cleanup step in the m
 
 The cost is cross-machine session continuity: working context doesn't travel between machines automatically. Engineers who need cross-machine continuity handle it manually. This tradeoff is deliberate.
 
-### Why the promotion ceremony requires cross-team review for argus ADRs
-
-Org-wide ADRs make implicit claims: "this decision applies to all Big Health engineering." A project-scoped ADR may have been written with implicit assumptions that only hold in the originating project's context. Cross-team review tests whether the ADR actually generalizes. It is the moment where those implicit assumptions are made visible or invalidated.
-
-Requiring at least one reviewer from outside the originating team is the minimum gate for this. It does not need to be a formal architecture council — it needs to be someone who will notice when an assumption doesn't hold in their context.
-
 ---
 
 ## Section 5: Known gaps
@@ -343,29 +330,29 @@ These pieces of the target state do not yet exist. Until they do, the correspond
 
 ### Confluence sync — not yet built
 
-Sync fires on merge to `main` in each repo. argus syncs to one Confluence space; each project repo syncs to its own. Two open questions before building: Cloud or Data Center Confluence (determines API surface)? What happens when someone edits a Confluence page — silent overwrite or drift detection?
+Sync fires on merge to `main`. Two open questions before building: Cloud or Data Center Confluence (determines API surface)? What happens when someone edits a Confluence page — silent overwrite or drift detection?
 
 Until built: ADRs and TDDs live in the repo only. Confluence reference is manual.
 
 ### `/bh-adr` skill — not yet built
 
-No gstack skill produces MADR-formatted ADRs. Until built, ADR authoring is manual: after `/plan-eng-review`, prompt Claude Code with the MADR template and relevant decision context.
+No gstack skill produces MADR-formatted ADRs. Until built, ADR authoring is manual: after `/plan-eng-review`, prompt Claude Code with `templates/adr-template.md` and relevant decision context.
 
-The skill should: take a TDD or decision summary as input; produce a MADR-formatted file in the canonical ADR path; include status, context, decision, consequences, and alternatives considered.
+The skill should: take a TDD or decision summary as input; produce a MADR-formatted file in the canonical ADR path (`areas/<area>/adrs/`); include status, context, decision, consequences, and alternatives considered.
 
 ### `/bh-ship` wrapper skill — not yet built
 
 The promotion checkpoint at ticket close depends on `/bh-ship`, a custom wrapper that composes gstack's `/ship` and `/retro` without duplicating them. Until built, engineers run `/ship` and `/retro` directly and promotion is entirely discipline-based.
 
-`/bh-ship` should: delegate to `/ship` (unchanged); delegate to `/retro` (unchanged); add a promotion checkpoint that reviews `.claude/tickets/[ticket-id]/` and surfaces candidate insights for TDD amendments or new project ADRs.
+`/bh-ship` should: delegate to `/ship` (unchanged); delegate to `/retro` (unchanged); add a promotion checkpoint that reviews `.claude/tickets/[ticket-id]/` and surfaces candidate insights for TDD amendments or new ADRs in argus.
 
-### argus bootstrap — not yet populated
+### Backfill of existing project-repo TDDs and ADRs
 
-argus exists as a repository but has not been populated. Required to activate the two-repo model: README, CONTRIBUTING, four top-level directories with their README indexes, the MADR template, and foundational ADRs (e.g. "we use MADR format," "repo is canonical for engineering docs").
+Engineering docs that currently live under `[project]/doc/tdds/` or `[project]/doc/adrs/` need to be moved into the correct argus area, renamed to slug form, given frontmatter, and the old project-repo locations deleted. Per-project PRs; can parallelize. Start with `vercel-billflow` since it has the most existing content.
 
-### Project repo `/doc` bootstrap — not yet created
+### Taxonomy maintenance — no formal bar yet
 
-Existing project repos do not yet have the `/doc` structure described here. Each project needs: directory creation, README index, template files.
+Adding or renaming an area is a PR that edits `argus/areas/README.md` and `git mv`s the folder. Single-approver. We have not yet decided whether to raise the bar (e.g. require sign-off from a broader review group when scope is ambiguous) or who should care about pruning unused areas. Worth revisiting once enough areas exist to make the decision concrete.
 
 ### Stale draft PR cleanup — no convention yet
 
