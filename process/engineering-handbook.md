@@ -31,6 +31,7 @@ graph LR
 | Standard or style guide | `argus/standards/` |
 | Engineering process docs (this doc) | `argus/process/` |
 | Architectural overview | `argus/architecture/` |
+| Claude Code skill | `argus/skills/[skill-name].md` (or `argus/skills/[skill-name]/SKILL.md` for bundled) |
 | Phasing plan | `[project]/doc/phasing/phasing-[feature].md` |
 | Per-ticket working context | `[project]/.claude/tickets/[ticket-id]/` (local only, gitignored) |
 
@@ -247,6 +248,11 @@ argus/
 ├── templates/
 │   ├── tdd-template.md
 │   └── adr-template.md
+├── skills/
+│   ├── README.md          ← generated index, grouped by area from frontmatter
+│   ├── [skill-name].md    ← single-file skill
+│   └── [skill-name]/      ← bundled skill (SKILL.md + scripts/assets/MCP)
+│       └── SKILL.md
 ├── standards/
 │   ├── README.md
 │   ├── coding/
@@ -256,7 +262,8 @@ argus/
 │   └── api-design.md
 ├── process/
 │   ├── README.md
-│   └── engineering-handbook.md
+│   ├── engineering-handbook.md
+│   └── skills-handbook.md
 ├── architecture/
 │   ├── README.md          ← owner + last-reviewed date per entry
 │   └── ...
@@ -277,6 +284,8 @@ argus/
 TDD and ADR filenames are slug-based: `TDD-[slug].md`, `ADR-[slug].md`. No numeric prefix. The slug in the filename is the canonical ID and also appears as the `tdd:` or `adr:` field in YAML frontmatter. Refer to docs by slug ("ADR-idempotency-keys", "TDD-claims-validator") — the slug is descriptive enough that no qualifier is needed.
 
 Architecture overviews require a named owner and last-reviewed date — unowned overviews are removed.
+
+Skills live flat in `skills/` rather than under areas; area is metadata in the skill's frontmatter, not directory location. See the [skills handbook](./skills-handbook.md) for authoring, review, distribution, and discovery.
 
 ### Project repos — local working artifacts only
 
