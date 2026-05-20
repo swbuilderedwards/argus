@@ -5,6 +5,7 @@
 Big Health Studio has an end-to-end product development lifecycle, from first idea through customer-facing release. It spans six phases:
 
 ```mermaid
+%%{init: {'flowchart': {'nodeSpacing': 15, 'rankSpacing': 15, 'padding': 5}}}%%
 graph LR
   A[Discovery] --> B[Definition]
   B --> C[Design]
@@ -42,6 +43,7 @@ graph LR
 The Studio lifecycle, with Build expanded into the four phases this handbook covers. Each per-phase diagram appears at the top of its section below.
 
 ```mermaid
+%%{init: {'flowchart': {'nodeSpacing': 15, 'rankSpacing': 15, 'padding': 5}}}%%
 flowchart LR
   Disc[Discovery] --> Defn[Definition]
   Defn --> Des[Design]
@@ -51,14 +53,18 @@ flowchart LR
 
   subgraph Build [Build — this handbook]
     direction TB
-    A1([PRD + design spec]) --> P1[Phase 1<br/>Feature planning]
+    A1([PRD + design spec]) --> P1[Phase 1 — Feature planning]
     P1 --> A2([TDD + ADRs])
-    A2 --> P2[Phase 2<br/>Phasing &amp; tickets]
+    A2 --> P2[Phase 2 — Phasing &amp; tickets]
     P2 --> A3([Phasing plan + Jira tickets])
-    A3 --> P3[Phase 3<br/>Implementation]
-    P3 --> A4([Code + working context])
-    A4 --> P4[Phase 4<br/>Pre-PR gates]
-    P4 --> A5([PR ready for QA])
+    A3 --> PerTicket
+
+    subgraph PerTicket [Per ticket]
+      direction TB
+      P3[Phase 3 — Implementation] --> A4([Code + working context])
+      A4 --> P4[Phase 4 — Pre-PR gates]
+      P4 --> A5([PR ready for QA])
+    end
   end
 
   classDef current fill:#cfe8ff,stroke:#0366d6,stroke-width:2px;
@@ -72,6 +78,7 @@ flowchart LR
 ### Phase 1 — Feature planning
 
 ```mermaid
+%%{init: {'flowchart': {'nodeSpacing': 20, 'rankSpacing': 30, 'padding': 8}}}%%
 flowchart TB
   subgraph R1 [" "]
     direction LR
@@ -105,6 +112,7 @@ Step by step (one bullet per box, in diagram order):
 ### Phase 2 — Phasing plan and Jira tickets
 
 ```mermaid
+%%{init: {'flowchart': {'nodeSpacing': 20, 'rankSpacing': 30, 'padding': 8}}}%%
 flowchart LR
   In([Merged TDD]) --> A["Phasing plan<br/>(Claude Code, prompted)"]
   A --> B["/jira-ticket-authoring"]
@@ -126,6 +134,7 @@ Step by step (one bullet per box, in diagram order):
 ### Phase 3 — Per-ticket implementation
 
 ```mermaid
+%%{init: {'flowchart': {'nodeSpacing': 20, 'rankSpacing': 30, 'padding': 8}}}%%
 flowchart TB
   subgraph R1 [" "]
     direction LR
@@ -170,6 +179,7 @@ Step by step (one bullet per box, in diagram order):
 ### Phase 4 — Pre-PR gates
 
 ```mermaid
+%%{init: {'flowchart': {'nodeSpacing': 20, 'rankSpacing': 30, 'padding': 8}}}%%
 flowchart TB
   subgraph R1 [" "]
     direction LR
