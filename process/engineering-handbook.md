@@ -1,8 +1,21 @@
 # Engineering Handbook
 
-**Status:** Target-state specification. Gaps between current state and target are called out in *Section 5: Known gaps*.
+## Overview
 
-**Scope:** Engineering process and documentation structure, from PRD-in-hand through to PR-ready. Engineer-reviewed artifacts only. Out of scope: PM/design phases, non-engineer-reviewed docs, QA acceptance testing.
+Big Health Studio has an end-to-end product development lifecycle, from first idea through customer-facing release. It spans six phases:
+
+```mermaid
+%%{init: {'flowchart': {'nodeSpacing': 15, 'rankSpacing': 15, 'padding': 5}}}%%
+graph LR
+  A[Discovery] --> B[Definition]
+  B --> C[Design]
+  C --> D[Build]:::current
+  D --> E[Validate]
+  E --> F[Launch]
+  classDef current fill:#cfe8ff,stroke:#0366d6,stroke-width:2px;
+```
+
+**This handbook is the canonical reference for the Build phase**: how engineering takes a PRD-in-hand to a PR ready for Validate. It covers engineer-authored and engineer-reviewed artifacts (TDDs, ADRs, phasing plans, per-ticket working context), the gstack skills that produce and gate them, and the documentation PR workflow that publishes them. Adjacent phases — the artifacts of Discovery, Definition, Design, Validate, and Launch — are out of scope here and live under their own owners.
 
 ---
 
@@ -25,74 +38,37 @@
 
 ---
 
-### What skill to run, and when?
-
-| When | Skill |
-|---|---|
-| Before engineering specifies anything | `/plan-ceo-review` |
-| Producing the TDD | `/plan-eng-review` |
-| Feature has UI | `/plan-design-review` |
-| Per-ticket planning | Plan mode (seeded with TDD) |
-| Something breaks during implementation | `/investigate` |
-| Implementation complete — code review | `/review` |
-| Implementation complete — UI polish | `/design-review` |
-| Implementation complete — security-sensitive ticket | `/cso` |
-| Implementation complete — final health check | `/codex` |
-| Closing a ticket | `/bh-ship` *(not yet built — see gaps)* |
-
----
-
 ### Process at a glance
 
-```
-PRD + design spec
-        │
-        ▼
-┌──────────────────────────────────────┐
-│ Phase 1: Feature planning             │
-│   /plan-ceo-review                    │
-│   /plan-eng-review  → TDD             │
-│   /plan-design-review (UI only)       │
-│   Manual ADR(s) if warranted          │
-│   PR review → merge → Confluence sync │
-└──────────────────────────────────────┘
-        │ TDD + ADRs locked
-        ▼
-┌──────────────────────────────────────┐
-│ Phase 2: Phasing + ticketing          │
-│   Phasing plan (Claude Code, prompted)│
-│   /jira-ticket-authoring              │
-└──────────────────────────────────────┘
-        │ Tickets created
-        ▼
-┌──────────────────────────────────────┐
-│ Phase 3: Per-ticket implementation    │
-│   Load TDD + ticket                   │
-│   /careful + /freeze                  │
-│   Plan mode (seeded with TDD)         │
-│   Agentic implementation              │
-│   /investigate on breakage            │
-│   Working context → .claude/tickets/  │
-└──────────────────────────────────────┘
-        │ Implementation complete
-        ▼
-┌──────────────────────────────────────┐
-│ Phase 4: Pre-PR gates                 │
-│   /review (always)                    │
-│   /design-review (UI)                 │
-│   /cso (security-sensitive)           │
-│   /codex (always)                     │
-└──────────────────────────────────────┘
-        │ All gates pass
-        ▼
-   PR ready for QA
-        │ At ticket close
-        ▼
-┌──────────────────────────────────────┐
-│ /bh-ship                              │
-│   → /ship → /retro                    │
-│   → Promotion checkpoint              │
-└──────────────────────────────────────┘
+The Studio lifecycle, with Build expanded into the four phases this handbook covers. Each per-phase diagram appears at the top of its section below.
+
+```mermaid
+%%{init: {'flowchart': {'nodeSpacing': 15, 'rankSpacing': 15, 'padding': 5}}}%%
+flowchart LR
+  Disc[Discovery] --> Defn[Definition]
+  Defn --> Des[Design]
+  Des --> Build
+  Build --> Val[Validate]
+  Val --> Lau[Launch]
+
+  subgraph Build [Build — this handbook]
+    direction TB
+    A1([PRD + design spec]) --> P1[Phase 1 — Feature planning]
+    P1 --> A2([TDD + ADRs])
+    A2 --> P2[Phase 2 — Phasing &amp; tickets]
+    P2 --> A3([Phasing plan + Jira tickets])
+    A3 --> PerTicket
+
+    subgraph PerTicket [Per ticket]
+      direction TB
+      P3[Phase 3 — Implementation] --> A4([Code + working context])
+      A4 --> P4[Phase 4 — Pre-PR gates]
+      P4 --> A5([PR ready for QA])
+    end
+  end
+
+  classDef current fill:#cfe8ff,stroke:#0366d6,stroke-width:2px;
+  class Build current
 ```
 
 ---
@@ -101,72 +77,133 @@ PRD + design spec
 
 ### Phase 1 — Feature planning
 
+```mermaid
+%%{init: {'flowchart': {'nodeSpacing': 20, 'rankSpacing': 30, 'padding': 8}}}%%
+flowchart TB
+  subgraph R1 [" "]
+    direction LR
+    In([PRD + design spec]) --> A["/plan-ceo-review"] --> B["/plan-eng-review<br/>(produces TDD)"] --> C["/plan-design-review<br/>(UI only)"]
+  end
+  subgraph R2 [" "]
+    direction LR
+    D["Manual ADR(s)<br/>if warranted"] --> E["Doc PR workflow"] --> Out([TDD + ADRs merged])
+  end
+  C --> D
+  style R1 fill:none,stroke:none
+  style R2 fill:none,stroke:none
+```
+
 **Inputs:** PRD, design spec (if applicable)
-**Outputs:** TDD, ADR(s)
+**Outputs:** TDD + ADR(s) merged to argus
 **Where:** Claude Code session with PRD and design spec loaded
 
-**Skills, in order:**
-1. `/plan-ceo-review` — Run first, always.
-2. `/plan-eng-review` — Produces the TDD. Run against the full feature; comprehensiveness is appropriate here.
-3. `/plan-design-review` — UI features only.
+Step by step (one bullet per box, in diagram order):
 
-**TDD:** The output of `/plan-eng-review` becomes the TDD with light editing. File it under the most specific applicable area at `argus/areas/<area>/tdds/TDD-[slug].md`. TDD frontmatter must include `epic:` before its `status` moves from `draft` to `accepted`. Must be reviewed and merged via PR before Phase 2 begins.
-
-**ADRs:** After `/plan-eng-review`, review the TDD for decisions that warrant a standalone ADR. Author one ADR per decision using the MADR template at `templates/adr-template.md`. A decision warrants an ADR when it constrains future work, rejects a plausible alternative for non-obvious reasons, or would prompt a future engineer to ask "why did we do it this way?" File each ADR under the most specific applicable area at `argus/areas/<area>/adrs/ADR-[slug].md`. Cross-cutting decisions go under `areas/general/`.
-
-**Review and publish:** Both TDD and ADRs go through the documentation PR workflow (see *Documentation PR workflow* below) before Phase 2 starts.
+- **PRD + design spec** — Load both into context before anything else.
+- **`/plan-ceo-review`** — Run first, always. Sanity-checks the PRD before engineering specifies anything.
+- **`/plan-eng-review`** — Produces the TDD. Run against the full feature; comprehensiveness is appropriate at this level. The output becomes the TDD with light editing. File at `argus/areas/<area>/tdds/TDD-[slug].md` under the most specific applicable area. Frontmatter must include `epic:` before `status` moves from `draft` to `accepted`.
+- **`/plan-design-review`** — UI features only.
+- **Manual ADR(s) if warranted** — Review the TDD for decisions that warrant a standalone ADR. Author one ADR per decision using `templates/adr-template.md`. A decision warrants an ADR when it constrains future work, rejects a plausible alternative for non-obvious reasons, or would prompt a future engineer to ask "why did we do it this way?" File at `argus/areas/<area>/adrs/ADR-[slug].md`; cross-cutting decisions go under `areas/general/`.
+- **Doc PR workflow** — Both TDD and ADRs go through the documentation PR workflow (see *Documentation PR workflow* below).
+- **TDD + ADRs merged** — Required before Phase 2. Tickets created against an unmerged TDD will be rewritten.
 
 ---
 
 ### Phase 2 — Phasing plan and Jira tickets
 
+```mermaid
+%%{init: {'flowchart': {'nodeSpacing': 20, 'rankSpacing': 30, 'padding': 8}}}%%
+flowchart LR
+  In([Merged TDD]) --> A["Phasing plan<br/>(Claude Code, prompted)"]
+  A --> B["/jira-ticket-authoring"]
+  B --> Out([Jira tickets])
+```
+
 **Inputs:** Locked, merged TDD
 **Outputs:** Phasing plan, Jira tickets
 
-Do not start Phase 2 until the TDD is merged. Tickets created against an unstable TDD will be rewritten.
+Step by step (one bullet per box, in diagram order):
 
-Produce the phasing plan by loading the TDD into Claude Code and prompting for a sequencing breakdown — identifying dependencies, sequence constraints, and milestones. Save as `[project]/doc/phasing/phasing-[feature].md`. The phasing plan is project-local and is not synced to Confluence.
-
-Run `/jira-ticket-authoring` to convert the locked TDD and phasing plan into Jira tickets.
+- **Merged TDD** — Do not start Phase 2 until the TDD is merged. Tickets created against an unstable TDD will be rewritten.
+- **Phasing plan (Claude Code, prompted)** — Load the TDD into Claude Code and prompt for a sequencing breakdown: dependencies, sequence constraints, milestones. Save as `[project]/doc/phasing/phasing-[feature].md`. Project-local; not synced to Confluence.
+- **`/jira-ticket-authoring`** — Converts the locked TDD and phasing plan into Jira tickets.
+- **Jira tickets** — Ready for Phase 3 pickup.
 
 ---
 
 ### Phase 3 — Per-ticket implementation
 
+```mermaid
+%%{init: {'flowchart': {'nodeSpacing': 20, 'rankSpacing': 30, 'padding': 8}}}%%
+flowchart TB
+  subgraph R1 [" "]
+    direction LR
+    In([TDD + Jira ticket]) --> A["Load TDD + ticket"] --> B["/careful + /freeze"]
+  end
+  subgraph R2 [" "]
+    direction LR
+    C["Plan mode<br/>(seeded with TDD)"] --> D["Agentic implementation"]
+  end
+  subgraph R3 [" "]
+    direction LR
+    E["Working context<br/>→ .claude/tickets/"] --> F["/bh-ship<br/>(ticket close, promotion)"] --> Out([Implementation complete])
+  end
+  B --> C
+  D -- "on breakage" --> Inv["/investigate"]
+  Inv --> D
+  D --> E
+  style R1 fill:none,stroke:none
+  style R2 fill:none,stroke:none
+  style R3 fill:none,stroke:none
+```
+
 **Inputs:** TDD, Jira ticket
 **Outputs:** Code, ephemeral working context, promoted insights (if any)
 
-**Session setup — do these before anything else:**
-1. Load the TDD into context. TDDs live in argus under `areas/<area>/tdds/`. When available, `/bh-ticket-start` resolves a ticket to its TDD by greping frontmatter `epic:` across `argus/areas/`; otherwise navigate by area.
-2. Load the Jira ticket.
-3. Run `/careful` and `/freeze` (or `/guard`).
+Step by step (one bullet per box, in diagram order):
 
-**Planning:** Use plan mode seeded with the relevant TDD section. Do not use `/plan-eng-review` at the ticket level — it will over-scope. Write the output to `.claude/tickets/[ticket-id]/plan.md`.
-
-**Implementation:** Agentic execution against the plan.
-
-- On breakage: `/investigate` before any fix. No exceptions.
-- On a new edge case: a new edge case is something the TDD didn't anticipate but doesn't invalidate its overall approach — for example, a data shape that differs from what was assumed, an integration constraint that wasn't known at planning time, or a failure mode the TDD's test plan didn't cover. Pause, run `/plan-eng-review` on the specific discovery (not the whole ticket), update the TDD via PR in argus, then continue. If you find yourself questioning the architectural approach rather than filling in a gap, that's not a new edge case — see the bullet below.
-- On a broken architectural approach: stop the ticket. Re-open Phase 1. See *Rationale — what to do when the TDD is wrong*.
-
-**Working context:** `.claude/tickets/[ticket-id]/` holds plan files, notes, failed approaches — anything needed for session continuity. This directory is gitignored always and never committed. Files persist on local disk for the ticket's lifetime. At ticket close, review for promotable insights, then delete.
-
-**Promotion at ticket close:** Run `/bh-ship` *(not yet built)*. It reviews working context, surfaces insights worth keeping, and routes confirmed candidates through the documentation PR workflow as TDD amendments or new ADRs in argus.
+- **TDD + Jira ticket** — Both required before opening a session.
+- **Load TDD + ticket** — TDDs live in argus under `areas/<area>/tdds/`. When available, `/bh-ticket-start` resolves a ticket to its TDD by greping frontmatter `epic:` across `argus/areas/`; otherwise navigate by area. Also load the Jira ticket.
+- **`/careful` + `/freeze`** — Run both (or `/guard`) before any implementation work.
+- **Plan mode (seeded with TDD)** — Plan at the ticket level using plan mode seeded with the relevant TDD section. Do not use `/plan-eng-review` at the ticket level — it will over-scope. Write the plan to `.claude/tickets/[ticket-id]/plan.md`.
+- **Agentic implementation** — Execute against the plan.
+  - On a *new edge case* (something the TDD didn't anticipate but doesn't invalidate its approach — e.g. a data shape that differs from what was assumed, an integration constraint not known at planning time, or a failure mode the TDD's test plan didn't cover): pause, run `/plan-eng-review` on the specific discovery, update the TDD via PR in argus, then continue.
+  - On a *broken architectural approach* (you're questioning the approach itself, not filling a gap): stop the ticket. Re-open Phase 1. See *Rationale — what to do when the TDD is wrong*.
+- **`/investigate`** — On any breakage. Before any fix. No exceptions. Returns to agentic implementation when resolved.
+- **Working context → `.claude/tickets/`** — `.claude/tickets/[ticket-id]/` holds plan files, notes, failed approaches — anything needed for session continuity. Gitignored always, never committed. Persists on local disk for the ticket's lifetime.
+- **`/bh-ship` (ticket close, promotion)** — *(not yet built — see gaps)*. Reviews working context, surfaces insights worth keeping, and routes confirmed candidates through the documentation PR workflow as TDD amendments or new ADRs in argus. Then the directory is deleted.
+- **Implementation complete** — Hand off to Phase 4 gates.
 
 ---
 
 ### Phase 4 — Pre-PR gates
 
+```mermaid
+%%{init: {'flowchart': {'nodeSpacing': 20, 'rankSpacing': 30, 'padding': 8}}}%%
+flowchart TB
+  subgraph R1 [" "]
+    direction LR
+    In([Implementation complete]) --> A["/review<br/>(always)"] --> B["/design-review<br/>(if UI)"]
+  end
+  subgraph R2 [" "]
+    direction LR
+    C["/cso<br/>(if security-sensitive)"] --> D["/codex<br/>(always)"] --> Out([PR ready for QA])
+  end
+  B --> C
+  style R1 fill:none,stroke:none
+  style R2 fill:none,stroke:none
+```
+
 Run in sequence when implementation is complete.
 
-| Gate | When to run |
-|---|---|
-| `/review` | Always |
-| `/design-review` | Ticket touches UI |
-| `/cso` | Ticket touches auth, data storage, PHI/PII, or external integrations |
-| `/codex` | Always |
+Step by step (one bullet per box, in diagram order):
 
-PR is ready for QA when all applicable gates pass.
+- **Implementation complete** — Entry signal; all applicable gates run from here.
+- **`/review` (always)** — Code review. Runs on every ticket.
+- **`/design-review` (if UI)** — Runs when the ticket touches UI.
+- **`/cso` (if security-sensitive)** — Runs when the ticket touches auth, data storage, PHI/PII, or external integrations.
+- **`/codex` (always)** — Final health check. Runs on every ticket.
+- **PR ready for QA** — When all applicable gates pass.
 
 ---
 
